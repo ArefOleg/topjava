@@ -15,81 +15,57 @@ import java.util.stream.Stream;
 public class UserMealsUtil {
     public static void main(String[] args) {
         List<UserMeal> meals = Arrays.asList(
-                new UserMeal(LocalDateTime.of(2020, Month.JANUARY, 30, 10, 0), "Завтрак", 1200),
+                new UserMeal(LocalDateTime.of(2020, Month.JANUARY, 30, 9, 0), "Завтрак", 1200),
                 new UserMeal(LocalDateTime.of(2020, Month.JANUARY, 30, 13, 0), "Обед", 70),
                 new UserMeal(LocalDateTime.of(2020, Month.JANUARY, 30, 20, 0), "Ужин", 500),
                 new UserMeal(LocalDateTime.of(2020, Month.JANUARY, 31, 0, 0), "Еда на граничное значение", 100),
-                new UserMeal(LocalDateTime.of(2020, Month.JANUARY, 31, 9, 0), "Завтрак", 4000),
+                new UserMeal(LocalDateTime.of(2020, Month.JANUARY, 30, 8, 0), "Завтрак", 4000),
                 new UserMeal(LocalDateTime.of(2020, Month.JANUARY, 31, 15, 0), "Обед", 500),
-                new UserMeal(LocalDateTime.of(2020, Month.JANUARY, 31, 20, 0), "Ужин", 410)
+                new UserMeal(LocalDateTime.of(2020, Month.JANUARY, 31, 20, 0), "Ужин", 410),
+                new UserMeal(LocalDateTime.of(2021, Month.JANUARY, 25, 5, 22), "Ночник", 400),
+                new UserMeal(LocalDateTime.of(2021, Month.DECEMBER, 25, 3, 22), "Ночник", 500),
+                new UserMeal(LocalDateTime.of(2021, Month.DECEMBER, 25, 14, 22), "Обед", 500),
+                new UserMeal(LocalDateTime.of(2021, Month.DECEMBER, 25, 17, 22), "Ужин", 500)
         );
-
-
-        List<UserMealWithExcess> mealsTo = filteredByCycles(meals, LocalTime.of(7, 0), LocalTime.of(13, 1), 2000); // объявление
+        TimeUtil tu = new TimeUtil();
+        List<UserMealWithExcess> mealsTo = filteredByCycles(meals, LocalTime.of(3, 0), LocalTime.of(5, 30), 1600, tu); // объявление
         System.out.println(mealsTo.toString());
-        /*for(UserMealWithExcess userMealWithExcess: mealsTo)
-        {
-            System.out.println(mealsTo.toString());
-        }*/
-
-
-        //   filteredByStreams(meals, LocalTime.of(7, 0), LocalTime.of(20, 0), 3000);
+        filteredByStreams(meals, LocalTime.of(10, 0), LocalTime.of(18, 0), 1600, tu);
     }
 
-    public static List<UserMealWithExcess> filteredByCycles(List<UserMeal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
+    public static List<UserMealWithExcess> filteredByCycles(List<UserMeal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay, TimeUtil tu) {
         List<UserMealWithExcess> listExcess = new ArrayList<>();
-        for(UserMeal usermeal: meals)
-        {
-            if(usermeal.getDateTime().toLocalTime().compareTo(startTime) > 0 && usermeal.getDateTime().toLocalTime().compareTo(endTime) < 0) listExcess.add(new UserMealWithExcess(usermeal.getDateTime(),usermeal.getDescription(),usermeal.getCalories(), CheckExcessList(meals, usermeal.getDateTime(), caloriesPerDay)));
+        int sum = 0;
+
+        for (UserMeal usermeal : meals) {
+            if (tu.isBetweenHalfOpen(usermeal.getDateTime().toLocalTime(), startTime, endTime) == true) {
+                for (UserMeal usermeal2 : meals) {
+                    if ((usermeal.getDateTime()).toLocalDate().compareTo((usermeal2.getDateTime()).toLocalDate()) == 0) {
+                        sum = sum + usermeal2.getCalories();
+                    }
+                }
+                listExcess.add(new UserMealWithExcess(
+                        usermeal.getDateTime(),
+                        usermeal.getDescription(),
+                        usermeal.getCalories(),
+                        sum < caloriesPerDay
+                ));
+                sum = 0;
+            }
         }
         return listExcess;
     }
 
-    public static boolean CheckExcessList(List<UserMeal> meals, LocalDateTime Time, int Calories)
-    {
-        boolean checkExcess;
-        int sum = 0;
-        int Day = Time.getDayOfMonth();
-        int Month = Time.getMonthValue();
-        int Year = Time.getYear();
-        for(UserMeal usermeal: meals)
-        {
-            if(usermeal.getDateTime().getDayOfMonth() == Day && usermeal.getDateTime().getMonthValue() == Month && usermeal.getDateTime().getYear() == Year)
-                sum = sum + usermeal.getCalories();
-        }
-        if (Calories > sum)
-        {
-            checkExcess = false;
-        }
-        else  checkExcess = true;
-        return checkExcess;
-    }
-
-    public static List<UserMealWithExcess> filteredByStreams(List<UserMeal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
-        meals.stream().filter(p->((p.getDateTime()).toLocalTime()).compareTo(startTime) > 0 && ((p.getDateTime()).toLocalTime()).compareTo(endTime) < 0).forEach(p->System.out.println("dateTime = " + (p.getDateTime()).toLocalTime()  + ", description = " + p.getDescription() + ", calories = " + p.getCalories() + ", excess = " + CheckExcessStream(meals, p.getDateTime(), caloriesPerDay)));
+    public static List<UserMealWithExcess> filteredByStreams(List<UserMeal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay, TimeUtil tu) {
+        meals.stream().filter(p -> tu.isBetweenHalfOpen((p.getDateTime()).toLocalTime(), startTime, endTime) == true)
+                .forEach(p -> System.out.println(
+                        "dateTime = " + (p.getDateTime()).toLocalTime() +
+                                ", description = " + p.getDescription() +
+                                ", calories = " + p.getCalories() +
+                                ", excess = " + ((meals.stream().
+                                filter(s -> s.getDateTime().toLocalDate().compareTo(p.getDateTime().toLocalDate()) == 0).
+                                reduce(0, (x, y) -> x + y.getCalories(), Integer::sum)) < caloriesPerDay)));
         return null;
     }
 
-    public static boolean CheckExcessStream(List<UserMeal> meals, LocalDateTime Time, int Calories)
-    {
-        boolean checkExcess;
-        int Day = Time.getDayOfMonth();
-        int Month = Time.getMonthValue();
-        int Year = Time.getYear();
-        Stream<List> UM = Stream.of(meals);
-        int sum = meals.stream().filter(p->p.getDateTime().getDayOfMonth() == Day && p.getDateTime().getMonthValue() == Month && p.getDateTime().getYear() == Year).reduce(0,(tempExcessResult, meal) -> tempExcessResult + meal.getCalories(), Integer::sum);
-        System.out.println(sum);
-        if (Calories > sum)
-        {
-            checkExcess = false;
-        }
-        else  checkExcess = true;
-        return checkExcess;
-    }
-
-
-   /* public static List<UserMealWithExcess> filteredByStreams(List<UserMeal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
-        // TODO Implement by streams
-        return null;
-    }*/
 }
