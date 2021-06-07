@@ -19,6 +19,10 @@ public class UserMealWithExcess {
         this.excess = excess;
     }
 
+    public int getCalories() {
+        return calories;
+    }
+
     @Override
     public String toString() {
         return "UserMealWithExcess{" +
