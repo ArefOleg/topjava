@@ -9,6 +9,7 @@ import java.time.LocalTime;
 import java.time.Month;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class UserMealsUtil {
     public static void main(String[] args) {
@@ -32,22 +33,23 @@ public class UserMealsUtil {
         List<UserMealWithExcess> listExcess = new ArrayList<>();
         final Map<LocalDate, Integer> caloriesSumByDate = new HashMap<>();
         final Map<LocalDate, AtomicBoolean> exceededMap = new HashMap<>();
+        AtomicInteger atomicInteger = new AtomicInteger(); // Инциализирую атомик
         meals.forEach(meal -> {
-                    AtomicBoolean wrapBoolean = exceededMap.computeIfAbsent(meal.getDateTime().toLocalDate(), date -> new AtomicBoolean()); // Выполнить, если нету такого значения
-                    Integer dailyCalories = caloriesSumByDate.merge(meal.getDateTime().toLocalDate(),meal.getCalories(), Integer::sum);
-                    if(dailyCalories > caloriesPerDay){
+                    AtomicBoolean wrapBoolean = exceededMap.computeIfAbsent(meal.getDateTime().toLocalDate(), date -> new AtomicBoolean());
+                    Integer dailyCalories = caloriesSumByDate.merge(meal.getDateTime().toLocalDate(), meal.getCalories(), Integer::sum);
+
+                    if (dailyCalories > caloriesPerDay) {
                         wrapBoolean.set(true);
                     }
-                    if(TimeUtil.isBetweenHalfOpen(meal.getDateTime().toLocalTime(), startTime, endTime)){
-                        listExcess.add(createWithExceeded(meal, wrapBoolean));
-                    }
+                    listExcess.add(createWithExceeded(meal, wrapBoolean, atomicInteger));
+                    atomicInteger.getAndAdd(1);
                 }
         );
         return listExcess;
     }
 
-    public static UserMealWithExcess createWithExceeded(UserMeal meal, AtomicBoolean exceeded){
-        return new UserMealWithExcess(meal.getDateTime(), meal.getDescription(), meal.getCalories(), exceeded);
+    public UserMealWithExcess createWithExceeded(UserMeal meal, AtomicBoolean exceeded, AtomicInteger Id) {
+        return new UserMealWithExcess(meal.getDateTime(), meal.getDescription(), meal.getCalories(), exceeded,Id);
     }
 
     public static List<UserMealWithExcess> filteredByStreams(List<UserMeal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {

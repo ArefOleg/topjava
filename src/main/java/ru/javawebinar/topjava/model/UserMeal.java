@@ -1,6 +1,7 @@
 package ru.javawebinar.topjava.model;
 
 import java.time.LocalDateTime;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class UserMeal {
     private final LocalDateTime dateTime;
@@ -8,6 +9,7 @@ public class UserMeal {
     private final String description;
 
     private final int calories;
+
 
     public UserMeal(LocalDateTime dateTime, String description, int calories) {
         this.dateTime = dateTime;
