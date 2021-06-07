@@ -48,7 +48,7 @@ public class UserMealsUtil {
         return listExcess;
     }
 
-    public UserMealWithExcess createWithExceeded(UserMeal meal, AtomicBoolean exceeded, AtomicInteger Id) {
+    public static UserMealWithExcess createWithExceeded(UserMeal meal, AtomicBoolean exceeded, AtomicInteger Id) {
         return new UserMealWithExcess(meal.getDateTime(), meal.getDescription(), meal.getCalories(), exceeded,Id);
     }
 
