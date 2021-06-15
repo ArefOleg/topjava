@@ -15,11 +15,11 @@ public class InMemoryUserMealRepository implements UserMealRepository{
     private AtomicInteger counter = new AtomicInteger(0);
     {
         save(new UserMeal(LocalDateTime.of(2020, Month.JANUARY, 30, 10, 0), "НулевойИД", 500));
-    /*    save(new UserMeal(LocalDateTime.of(2020, Month.JANUARY, 30, 13, 0), "Обед", 1000));
+        save(new UserMeal(LocalDateTime.of(2020, Month.JANUARY, 30, 13, 0), "Обед", 1000));
         save(new UserMeal(LocalDateTime.of(2020, Month.JANUARY, 30, 20, 0), "Ужин", 500));
         save(new UserMeal(LocalDateTime.of(2020, Month.JANUARY, 31, 10, 0), "Завтрак", 1000));
         save(new UserMeal(LocalDateTime.of(2020, Month.JANUARY, 31, 13, 0), "Обед", 500));
-        save(new UserMeal(LocalDateTime.of(2020, Month.JANUARY, 31, 20, 0), "Ужин", 410)); */
+        save(new UserMeal(LocalDateTime.of(2020, Month.JANUARY, 31, 20, 0), "Ужин", 410));
     }
 
     @Override
